@@ -6,14 +6,16 @@
 }
 
 :root {
-  /* Colors */
-  --bg-dark: #0B0B0B;
-  --bg-graphite: #161616;
-  --accent-gold: #C8A96A;
+  /* Colors - Luminous Midnight Gallery Theme */
+  --bg-dark: #050A14;          /* Midnight Navy */
+  --bg-graphite: #0c1322;      /* Deep Slate Blue */
+  --accent-gold: #C8A96A;      /* Swiss Gold */
+  --accent-rose-gold: #E29B7A; /* Rose Gold */
+  --accent-blue: #2A5C91;      /* Royal Blue */
   --text-white: #F5F5F5;
-  --text-silver: #B7BCC4;
-  --border-gold-dim: rgba(200, 169, 106, 0.2);
-  --border-gold-bright: rgba(200, 169, 106, 0.5);
+  --text-silver: #A9B2C0;      /* Satin Slate */
+  --border-gold-dim: rgba(200, 169, 106, 0.15);
+  --border-gold-bright: rgba(200, 169, 106, 0.4);
   
   /* Fonts */
   --font-serif: "Canela", "PP Editorial New", "Cormorant Garamond", serif;
@@ -26,7 +28,7 @@
 
 html {
   scroll-behavior: initial; /* Managed by Lenis */
-  background-color: var(--bg-dark);
+  background: radial-gradient(circle at 50% 50%, #0d1a33 0%, #050a14 70%, #020408 100%);
   color: var(--text-white);
   font-family: var(--font-sans);
   overflow-x: hidden;
@@ -34,6 +36,7 @@ html {
 
 body {
   overflow-x: hidden;
+  background: transparent; /* Allows HTML gradient to be visible */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -231,6 +234,32 @@ body {
   border-color: var(--accent-gold);
   background-color: rgba(200, 169, 106, 0.05);
   box-shadow: 0 0 15px rgba(200, 169, 106, 0.1);
+}
+
+/* --- TITLE SHIMMER EFFECT --- */
+.hero-title,
+.philosophy-heading,
+.craftsmanship-main-heading,
+.collections-main-heading,
+.materials-heading,
+.precision-main-heading,
+.experience-main-heading,
+.cta-title {
+  background: linear-gradient(135deg, #FFFFFF 20%, var(--accent-gold) 50%, #FFFFFF 80%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% auto;
+  animation: goldTitleShine 8s linear infinite;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.75));
+}
+
+@keyframes goldTitleShine {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 /* --- SECTIONS COMMON --- */
@@ -852,10 +881,10 @@ body {
 }
 
 .cta-btn-large {
-  background: var(--accent-gold);
-  color: #000;
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-rose-gold) 100%);
+  color: #050A14;
   font-family: var(--font-sans);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.2em;
@@ -863,14 +892,15 @@ body {
   border: none;
   cursor: pointer;
   transition: var(--transition-smooth);
-  box-shadow: 0 10px 30px rgba(200, 169, 106, 0.2);
+  box-shadow: 0 10px 30px rgba(200, 169, 106, 0.25), 0 0 30px rgba(42, 92, 145, 0.15);
+  border-radius: 4px;
 }
 
 .cta-btn-large:hover {
-  background-color: var(--text-white);
-  color: #000;
+  background: linear-gradient(135deg, var(--text-white) 0%, var(--accent-gold) 100%);
+  color: #050A14;
   transform: translateY(-3px);
-  box-shadow: 0 15px 35px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 15px 40px rgba(255, 255, 255, 0.22), 0 0 40px rgba(200, 169, 106, 0.2);
 }
 
 /* --- FOOTER --- */
@@ -993,7 +1023,7 @@ html.lenis, html.lenis body {
 .custom-cursor {
   width: 32px;
   height: 32px;
-  border: 1px solid var(--accent-gold);
+  border: 1px solid var(--accent-rose-gold);
   border-radius: 50%;
   position: fixed;
   transform: translate(-50%, -50%);

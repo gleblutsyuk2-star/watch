@@ -27,7 +27,7 @@ let mouseY = 0;
 let targetMouseX = 0;
 let targetMouseY = 0;
 
-// Interactive click & drag to rotate (as requested by watch_site_audit)
+// Interactive click & drag to rotate
 let isDragging = false;
 let previousMousePosition = { x: 0, y: 0 };
 let dragRotationX = 0;
@@ -133,7 +133,7 @@ export function init3D(onProgress, onLoadCallback) {
 
   // 1. Create Scene
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x0b0b0b, 0.05);
+  scene.fog = new THREE.FogExp2(0x070b14, 0.05); // Midnight navy fog matching the new dark blue layout
 
   // 2. Create Camera
   camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 50);
@@ -157,19 +157,19 @@ export function init3D(onProgress, onLoadCallback) {
   // 4. Post-processing Chain
   const renderPass = new RenderPass(scene, camera);
   
-  // Bloom configured to be subtler
+  // Bloom configured for soft, elegant glints
   const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
-    0.28, // Lower bloom strength for soft glints
-    0.45, // radius
-    0.90  // High threshold to only bloom direct metallic reflections
+    0.28,
+    0.45,
+    0.90
   );
 
-  // Bokeh (Depth of Field) Pass for high-end cinematic focal blurs
+  // Bokeh (Depth of Field) Pass
   bokehPass = new BokehPass(scene, camera, {
-    focus: 2.3, // Matches camera Z distance dynamically
-    aperture: 0.015, // Subtle blur strength
-    maxblur: 0.008, // Subtle blur limit
+    focus: 2.3,
+    aperture: 0.015,
+    maxblur: 0.008,
     width: window.innerWidth,
     height: window.innerHeight
   });
@@ -363,14 +363,12 @@ function setupProceduralMovement() {
     name: 'ProceduralRuby'
   });
 
-  // Create movement plate background
   const plateGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.01, 32);
   const plateMesh = new THREE.Mesh(plateGeo, metalSteel);
   plateMesh.rotation.x = Math.PI / 2;
   plateMesh.position.z = -0.05;
   groupPlates.add(plateMesh);
 
-  // Procedural Gear Generator
   function createGear(innerR, outerR, thick, teeth, mat, x, y, z, rotSpeed) {
     const shape = new THREE.Shape();
     const angleStep = (Math.PI * 2) / teeth;
@@ -423,13 +421,9 @@ function setupProceduralMovement() {
     return gearMesh;
   }
 
-  // Large center gear
   createGear(0.12, 0.15, 0.015, 24, metalGold, 0, 0, -0.03, 0.004);
-  // Medium gear
   createGear(0.08, 0.10, 0.015, 16, metalSteel, 0.13, 0.08, -0.03, -0.006);
-  // Small pinion
   createGear(0.04, 0.06, 0.012, 10, metalGold, 0.07, -0.11, -0.025, -0.0096);
-  // Escapement
   createGear(0.06, 0.08, 0.01, 15, metalGold, -0.08, 0.09, -0.025, 0.008);
 
   const rubyGeo = new THREE.CylinderGeometry(0.012, 0.012, 0.008, 16);
@@ -447,7 +441,6 @@ function setupProceduralMovement() {
     groupPlates.add(ruby);
   });
 
-  // Create Balance Wheel
   const balanceGroup = new THREE.Group();
   balanceGroup.position.set(-0.05, -0.07, -0.01);
 
@@ -468,7 +461,6 @@ function setupProceduralMovement() {
   staff.position.z = -0.005;
   balanceGroup.add(staff);
 
-  // Hairspring flat spiral
   const spiralPoints = [];
   const loops = 4.5;
   const maxR = 0.045;
@@ -530,7 +522,6 @@ function onTouchMove(e) {
     const deltaX = touch.clientX - previousMousePosition.x;
     const deltaY = touch.clientY - previousMousePosition.y;
 
-    // Accumulate custom rotation
     dragRotationY += deltaX * 0.006;
     dragRotationX += deltaY * 0.006;
 
@@ -566,88 +557,105 @@ function onWindowResize() {
 }
 
 // Unified Assembly and Camera Path driven by Keyframes
+// Now implements the "Zero-Gravity Floating components" scenario: all parts are visible
+// from the very beginning, spread out in space, and merge dynamically upon scrolling.
 function updateAssembly(val) {
-  // 1. CHOREOGRAPH COMPONENT SLIDES
-  // Phase 1: Gears and Movement plates merge (Step 0.0 to 0.4)
-  if (val < 0.4) {
-    const tGears = val / 0.4;
-    groupGears.position.z = 0;
-    groupGears.visible = true;
-    
-    // Plates slide in from behind
-    groupPlates.position.z = THREE.MathUtils.lerp(-1.0, 0.0, tGears);
-    groupPlates.visible = true;
-    
-    groupFace.visible = false;
-    groupHands.visible = false;
-    groupCasing.visible = false;
-    groupStrap.visible = false;
-    groupGlass.visible = false;
-  }
-  // Phase 2: Watch Face and Hands descend (Step 0.4 to 0.7)
-  else if (val >= 0.4 && val < 0.7) {
-    const tFace = (val - 0.4) / 0.3;
-    groupGears.visible = true;
-    groupPlates.visible = true;
-    groupGears.position.z = 0;
-    groupPlates.position.z = 0;
+  // Ensure all parts are visible from the start for the "Zero-Gravity" floating look
+  groupGears.visible = true;
+  groupPlates.visible = true;
+  groupFace.visible = true;
+  groupHands.visible = true;
+  groupCasing.visible = true;
+  groupStrap.visible = true;
+  groupGlass.visible = true;
 
-    groupFace.visible = true;
-    groupFace.position.z = THREE.MathUtils.lerp(1.2, 0.0, tFace);
-    
-    groupHands.visible = true;
-    groupHands.position.z = THREE.MathUtils.lerp(1.5, 0.0, tFace);
+  // Assembly slide calculations (Z-depths slide into exactly 0.0 at assembly thresholds)
+  // Each part resolves smoothly into position as we scroll down to its threshold.
+  const tGlass = Math.min(val / 0.92, 1.0);     // Glass locks last (92%)
+  const tHands = Math.min(val / 0.84, 1.0);     // Hands snap next (84%)
+  const tFace = Math.min(val / 0.78, 1.0);      // Face/dial slides in (78%)
+  const tCasing = Math.min(val / 0.72, 1.0);    // Outer casing snaps (72%)
+  const tStrap = Math.min(val / 0.65, 1.0);     // Straps join (65%)
+  const tPlates = Math.min(val / 0.58, 1.0);    // Movement plates slide (58%)
+  const tGears = Math.min(val / 0.48, 1.0);     // Internal gears align first (48%)
 
-    groupCasing.visible = false;
-    groupStrap.visible = false;
-    groupGlass.visible = false;
-  }
-  // Phase 3: Casing & Straps snap in (Step 0.7 to 0.9)
-  else if (val >= 0.7 && val < 0.9) {
-    const tCasing = (val - 0.7) / 0.2;
-    groupGears.visible = true;
-    groupPlates.visible = true;
-    groupFace.visible = true;
-    groupHands.visible = true;
-    groupFace.position.z = 0;
-    groupHands.position.z = 0;
+  // Base assembly positions
+  const baseZ_Glass = THREE.MathUtils.lerp(2.2, 0.0, tGlass);
+  const baseZ_Hands = THREE.MathUtils.lerp(1.5, 0.0, tHands);
+  const baseZ_Face = THREE.MathUtils.lerp(0.9, 0.0, tFace);
+  const baseZ_Casing = THREE.MathUtils.lerp(1.4, 0.0, tCasing);
+  
+  const baseY_Strap = THREE.MathUtils.lerp(0.9, 0.0, tStrap);
+  const baseZ_Strap = THREE.MathUtils.lerp(-0.4, 0.0, tStrap);
+  
+  const baseZ_Plates = THREE.MathUtils.lerp(-1.0, 0.0, tPlates);
+  const baseZ_Gears = THREE.MathUtils.lerp(-0.3, 0.0, tGears);
 
-    groupCasing.visible = true;
-    groupCasing.position.z = THREE.MathUtils.lerp(1.8, 0.0, tCasing);
+  // --- ZERO-GRAVITY ORGANIC DRIFT ---
+  // Slow, floating oscillation representing zero-gravity hovering at Hero (val = 0)
+  // The drift completely decays to 0.0 by progress = 0.85
+  const driftIntensity = 1.0 - Math.min(val / 0.85, 1.0);
+  const time = performance.now() * 0.001; // Get time in seconds
 
-    groupStrap.visible = true;
-    groupStrap.position.y = THREE.MathUtils.lerp(0.8, 0.0, tCasing);
-    groupStrap.position.z = THREE.MathUtils.lerp(-0.3, 0.0, tCasing);
+  const driftGlassZ = Math.sin(time * 0.6) * 0.06 * driftIntensity;
+  const driftGlassY = Math.cos(time * 0.45) * 0.03 * driftIntensity;
+  
+  const driftHandsZ = Math.sin(time * 0.5 + 1.2) * 0.04 * driftIntensity;
+  const driftHandsX = Math.cos(time * 0.4 + 0.8) * 0.03 * driftIntensity;
+  
+  const driftFaceZ = Math.sin(time * 0.4 + 2.4) * 0.03 * driftIntensity;
+  const driftFaceY = Math.cos(time * 0.5 + 1.6) * 0.02 * driftIntensity;
+  
+  const driftCasingZ = Math.sin(time * 0.3 + 3.6) * 0.04 * driftIntensity;
+  const driftCasingX = Math.cos(time * 0.4 + 2.0) * 0.02 * driftIntensity;
+  
+  const driftStrapY = Math.sin(time * 0.4 + 4.8) * 0.04 * driftIntensity;
+  const driftStrapZ = Math.cos(time * 0.35 + 2.4) * 0.03 * driftIntensity;
+  
+  const driftPlatesZ = Math.sin(time * 0.48 + 6.0) * 0.02 * driftIntensity;
+  
+  const driftGearsZ = Math.sin(time * 0.55 + 7.2) * 0.015 * driftIntensity;
 
-    groupGlass.visible = false;
-  }
-  // Phase 4: Glass cover slides down and locks (Step 0.9 to 1.0)
-  else {
-    const tGlass = (val - 0.9) / 0.1;
-    groupGears.visible = true;
-    groupPlates.visible = true;
-    groupFace.visible = true;
-    groupHands.visible = true;
-    groupCasing.visible = true;
-    groupStrap.visible = true;
+  // Apply positions: Base assembly position + organic float drift
+  groupGlass.position.z = baseZ_Glass + driftGlassZ;
+  groupGlass.position.y = driftGlassY;
 
-    groupCasing.position.z = 0;
-    groupStrap.position.y = 0;
-    groupStrap.position.z = 0;
+  groupHands.position.z = baseZ_Hands + driftHandsZ;
+  groupHands.position.x = driftHandsX;
 
-    groupGlass.visible = true;
-    groupGlass.position.z = THREE.MathUtils.lerp(2.0, 0.0, tGlass);
-  }
+  groupFace.position.z = baseZ_Face + driftFaceZ;
+  groupFace.position.y = driftFaceY;
+
+  groupCasing.position.z = baseZ_Casing + driftCasingZ;
+  groupCasing.position.x = driftCasingX;
+
+  groupStrap.position.y = baseY_Strap + driftStrapY;
+  groupStrap.position.z = baseZ_Strap + driftStrapZ;
+
+  groupPlates.position.z = baseZ_Plates + driftPlatesZ;
+  
+  groupGears.position.z = baseZ_Gears + driftGearsZ;
+
+  // Reset helper scales
+  const helperScale = 7.5;
+  groupGlass.scale.set(helperScale, helperScale, helperScale);
+  groupHands.scale.set(helperScale, helperScale, helperScale);
+  groupFace.scale.set(helperScale, helperScale, helperScale);
+  groupCasing.scale.set(helperScale, helperScale, helperScale);
+  groupStrap.scale.set(helperScale, helperScale, helperScale);
+  groupPlates.scale.set(helperScale, helperScale, helperScale);
+  groupGears.scale.set(helperScale, helperScale, helperScale);
 
   // 2. SMOOTH POSITION & ROTATION KEYFRAMING
   const watchPosX = getInterpolatedValue(keyframesX, val);
   const watchRotY = getInterpolatedValue(keyframesRotY, val);
   const watchRotX = getInterpolatedValue(keyframesRotX, val);
 
-  // Apply positions to all active watch groups, blending in user's drag rotation
+  // Apply group positioning and coordinate click-and-drag rotation
   const groups = [groupGears, groupPlates, groupFace, groupHands, groupCasing, groupStrap, groupGlass];
   groups.forEach(g => {
-    g.position.x = watchPosX;
+    // Add layout displacement X
+    g.position.x += (watchPosX - g.position.x) * 0.1; 
     g.rotation.y = watchRotY + dragRotationY;
     g.rotation.x = watchRotX + dragRotationX;
   });
@@ -685,7 +693,7 @@ function animate() {
     balanceWheel.rotation.z = Math.sin(elapsedTime * Math.PI * 4) * 0.75;
   }
 
-  // 2. Interpolate scroll progress smoothly (prevent stutters/lags)
+  // 2. Interpolate scroll progress smoothly
   currentProgress += (targetProgress - currentProgress) * 0.09;
   updateAssembly(currentProgress);
 
