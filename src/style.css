@@ -988,3 +988,72 @@ html.lenis, html.lenis body {
 .lenis.lenis-scrolling iframe {
   pointer-events: none;
 }
+
+/* --- CUSTOM CURSOR --- */
+.custom-cursor {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--accent-gold);
+  border-radius: 50%;
+  position: fixed;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10000;
+  mix-blend-mode: difference;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.custom-cursor-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--accent-gold);
+  border-radius: 50%;
+  position: fixed;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10000;
+  transition: transform 0.1s ease;
+}
+
+/* Cursor Hover States */
+.custom-cursor.hover {
+  width: 54px;
+  height: 54px;
+  background-color: rgba(200, 169, 106, 0.12);
+  border-color: var(--text-white);
+}
+
+.custom-cursor-dot.hover {
+  transform: translate(-50%, -50%) scale(1.8);
+  background-color: var(--text-white);
+}
+
+/* Hide cursor on desktop devices for immersive custom cursor experience */
+@media (min-width: 1024px) {
+  body, a, button, .collection-card, .cta-btn-header, .cta-btn-large {
+    cursor: none;
+  }
+}
+
+/* Hide custom cursor on touch/mobile devices */
+@media (max-width: 1023px) {
+  .custom-cursor, .custom-cursor-dot {
+    display: none;
+  }
+}
+
+/* --- 3D INTERACTIVE TILT ON CARDS --- */
+.collection-card {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.collection-card .card-content {
+  transform: translateZ(30px);
+  transition: var(--transition-smooth);
+}
+
+.collection-card:hover .card-content {
+  transform: translateZ(50px);
+}
+

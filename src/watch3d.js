@@ -4,11 +4,13 @@ import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
 
 // Global scene variables
 let scene, camera, renderer, composer;
 let watchModel = null;
 let pmremGenerator;
+let bokehPass;
 
 // Watch component groups
 let groupGears, groupPlates, groupFace, groupHands, groupCasing, groupStrap, groupGlass;
@@ -19,17 +21,22 @@ let balanceWheel = null;
 let currentProgress = 0;
 let targetProgress = 0;
 
-// Mouse interaction
+// Mouse interaction (parallax tilt)
 let mouseX = 0;
 let mouseY = 0;
 let targetMouseX = 0;
 let targetMouseY = 0;
 
+// Interactive click & drag to rotate (as requested by watch_site_audit)
+let isDragging = false;
+let previousMousePosition = { x: 0, y: 0 };
+let dragRotationX = 0;
+let dragRotationY = 0;
+
 // Reusable Vector to prevent Garbage Collection allocation lags
 const lookAtVector = new THREE.Vector3(0, 0, 0);
 
 // Keyframe configurations for smooth watch position, rotation, and camera paths
-// p = progress (0 to 1), val = target value
 const keyframesX = [
   { p: 0.0, val: 0.0 },    // Hero: Center
   { p: 0.125, val: 0.32 }, // Philosophy: Watch on the right (text left)
@@ -96,7 +103,7 @@ const keyframesCamZ = [
   { p: 0.25, val: 1.35 },  // Craftsmanship: Macro gears shot
   { p: 0.375, val: 1.85 }, // Collections: Medium view
   { p: 0.5, val: 2.05 },   // Materials
-  { p: 0.625, val: 2.2 },   // Precision
+  { p: 0.625, val: 2.2 },  // Precision
   { p: 0.75, val: 2.05 },  // Experience
   { p: 0.875, val: 2.35 }, // Testimonials
   { p: 1.0, val: 2.45 }    // CTA
@@ -112,8 +119,7 @@ function getInterpolatedValue(keyframes, progress) {
     const k2 = keyframes[i + 1];
     if (progress >= k1.p && progress <= k2.p) {
       const t = (progress - k1.p) / (k2.p - k1.p);
-      // Smooth cubic interpolation instead of linear to make movement organic
-      const smoothT = t * t * (3 - 2 * t);
+      const smoothT = t * t * (3 - 2 * t); // cubic ease
       return THREE.MathUtils.lerp(k1.val, k2.val, smoothT);
     }
   }
@@ -133,7 +139,7 @@ export function init3D(onProgress, onLoadCallback) {
   camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 50);
   camera.position.set(0, 0.05, 2.3);
 
-  // 3. Create Renderer (Capped pixel ratio to 1.5 to prevent GPU rendering lag)
+  // 3. Create Renderer (Capped pixel ratio to 1.5 for performance)
   renderer = new THREE.WebGLRenderer({
     canvas: canvas,
     antialias: true,
@@ -148,34 +154,44 @@ export function init3D(onProgress, onLoadCallback) {
   pmremGenerator = new THREE.PMREMGenerator(renderer);
   pmremGenerator.compileEquirectangularShader();
 
-  // 4. Post-processing
+  // 4. Post-processing Chain
   const renderPass = new RenderPass(scene, camera);
   
-  // Bloom configured to be subtler ("без бликов")
+  // Bloom configured to be subtler
   const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
-    0.28, // Lower bloom strength (down from 0.6) for elegant soft glints
+    0.28, // Lower bloom strength for soft glints
     0.45, // radius
-    0.90  // Higher threshold (up from 0.85) to only make direct metallic highlights glow
+    0.90  // High threshold to only bloom direct metallic reflections
   );
+
+  // Bokeh (Depth of Field) Pass for high-end cinematic focal blurs
+  bokehPass = new BokehPass(scene, camera, {
+    focus: 2.3, // Matches camera Z distance dynamically
+    aperture: 0.015, // Subtle blur strength
+    maxblur: 0.008, // Subtle blur limit
+    width: window.innerWidth,
+    height: window.innerHeight
+  });
 
   composer = new EffectComposer(renderer);
   composer.addPass(renderPass);
   composer.addPass(bloomPass);
+  composer.addPass(bokehPass);
 
-  // 5. Light configuration (Softer, realistic studio setup)
+  // 5. Lighting Setup
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.15);
   scene.add(ambientLight);
 
-  const keyLight = new THREE.DirectionalLight(0xfff8ee, 1.3); // Softer key light
+  const keyLight = new THREE.DirectionalLight(0xfff8ee, 1.3);
   keyLight.position.set(5, 5, 4);
   scene.add(keyLight);
 
-  const fillLight = new THREE.DirectionalLight(0xe8f0ff, 0.6); // Softer fill light
+  const fillLight = new THREE.DirectionalLight(0xe8f0ff, 0.6);
   fillLight.position.set(-5, 3, 2);
   scene.add(fillLight);
 
-  const rimLight = new THREE.DirectionalLight(0xC8A96A, 1.2); // Golden rim light for edges
+  const rimLight = new THREE.DirectionalLight(0xC8A96A, 1.2);
   rimLight.position.set(0, -5, -3);
   scene.add(rimLight);
 
@@ -201,7 +217,7 @@ export function init3D(onProgress, onLoadCallback) {
 
   // 7. Load Assets
   let assetsLoaded = 0;
-  const totalAssets = 2; // GLTF watch model + HDR env map
+  const totalAssets = 2;
 
   function checkProgress() {
     assetsLoaded++;
@@ -233,11 +249,9 @@ export function init3D(onProgress, onLoadCallback) {
   gltfLoader.load('/models/ChronographWatch.glb', (gltf) => {
     watchModel = gltf.scene;
     watchModel.scale.set(7.5, 7.5, 7.5);
-    watchModel.rotation.set(0, 0, 0);
 
     watchModel.traverse((child) => {
       if (child.isMesh) {
-        // Optimize: Do not compute dynamic shadows for maximum performance ("без лагов")
         child.castShadow = false;
         child.receiveShadow = false;
 
@@ -249,7 +263,6 @@ export function init3D(onProgress, onLoadCallback) {
         const name = child.name.toLowerCase();
 
         if (name.includes('glass') || name.includes('crystal')) {
-          // Sapphire Crystal glass material override
           child.material = new THREE.MeshPhysicalMaterial({
             color: 0xffffff,
             transparent: true,
@@ -315,6 +328,13 @@ export function init3D(onProgress, onLoadCallback) {
   // 8. Event Listeners
   window.addEventListener('resize', onWindowResize);
   window.addEventListener('mousemove', onMouseMove);
+  
+  // Drag to rotate listeners
+  window.addEventListener('mousedown', onMouseDown);
+  window.addEventListener('mouseup', onMouseUp);
+  window.addEventListener('touchstart', onTouchStart, { passive: true });
+  window.addEventListener('touchend', onTouchEnd, { passive: true });
+  window.addEventListener('touchmove', onTouchMove, { passive: true });
 }
 
 // Procedural Movement Generation (Gears, Balance Wheel)
@@ -358,25 +378,21 @@ function setupProceduralMovement() {
     for (let i = 0; i < teeth; i++) {
       const angle = i * angleStep;
       
-      // Base
       let r = innerR;
       let px = Math.cos(angle - angleStep * 0.25) * r;
       let py = Math.sin(angle - angleStep * 0.25) * r;
       if (i === 0) shape.moveTo(px, py);
       else shape.lineTo(px, py);
 
-      // Tip 1
       r = outerR;
       px = Math.cos(angle - angleStep * 0.1) * r;
       py = Math.sin(angle - angleStep * 0.1) * r;
       shape.lineTo(px, py);
 
-      // Tip 2
       px = Math.cos(angle + angleStep * 0.1) * r;
       py = Math.sin(angle + angleStep * 0.1) * r;
       shape.lineTo(px, py);
 
-      // Base 2
       r = innerR;
       px = Math.cos(angle + angleStep * 0.25) * r;
       py = Math.sin(angle + angleStep * 0.25) * r;
@@ -456,7 +472,7 @@ function setupProceduralMovement() {
   const spiralPoints = [];
   const loops = 4.5;
   const maxR = 0.045;
-  const segments = 64; // Optimized from 100 for better performance
+  const segments = 64;
   
   for (let i = 0; i <= segments; i++) {
     const theta = (i / segments) * (Math.PI * 2 * loops);
@@ -475,15 +491,66 @@ function setupProceduralMovement() {
   balanceWheel = balanceGroup;
 }
 
-// Update scroll progress (set by main.js)
+// Update scroll progress
 export function updateProgress(val) {
   targetProgress = val;
 }
 
-// Mouse position captures
+// Interactive Rotation Drag Event Handlers
+function onMouseDown(e) {
+  if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' || e.target.closest('a') || e.target.closest('button')) {
+    return;
+  }
+  isDragging = true;
+  previousMousePosition = { x: e.clientX, y: e.clientY };
+}
+
+function onMouseUp() {
+  isDragging = false;
+}
+
+function onTouchStart(e) {
+  if (e.touches.length === 1) {
+    const touch = e.touches[0];
+    if (touch.target.tagName === 'A' || touch.target.tagName === 'BUTTON' || touch.target.closest('a') || touch.target.closest('button')) {
+      return;
+    }
+    isDragging = true;
+    previousMousePosition = { x: touch.clientX, y: touch.clientY };
+  }
+}
+
+function onTouchEnd() {
+  isDragging = false;
+}
+
+function onTouchMove(e) {
+  if (isDragging && e.touches.length === 1) {
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - previousMousePosition.x;
+    const deltaY = touch.clientY - previousMousePosition.y;
+
+    // Accumulate custom rotation
+    dragRotationY += deltaX * 0.006;
+    dragRotationX += deltaY * 0.006;
+
+    previousMousePosition = { x: touch.clientX, y: touch.clientY };
+  }
+}
+
 function onMouseMove(e) {
   targetMouseX = (e.clientX / window.innerWidth) * 2 - 1;
   targetMouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+
+  if (isDragging) {
+    const deltaX = e.clientX - previousMousePosition.x;
+    const deltaY = e.clientY - previousMousePosition.y;
+
+    dragRotationY += deltaX * 0.005;
+    dragRotationX += deltaY * 0.005;
+
+    previousMousePosition = { x: e.clientX, y: e.clientY };
+  }
 }
 
 // Handle window resizing
@@ -492,6 +559,10 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
   composer.setSize(window.innerWidth, window.innerHeight);
+  
+  if (bokehPass) {
+    bokehPass.setSize(window.innerWidth, window.innerHeight);
+  }
 }
 
 // Unified Assembly and Camera Path driven by Keyframes
@@ -507,7 +578,6 @@ function updateAssembly(val) {
     groupPlates.position.z = THREE.MathUtils.lerp(-1.0, 0.0, tGears);
     groupPlates.visible = true;
     
-    // Hide outer shell parts
     groupFace.visible = false;
     groupHands.visible = false;
     groupCasing.visible = false;
@@ -570,17 +640,16 @@ function updateAssembly(val) {
   }
 
   // 2. SMOOTH POSITION & ROTATION KEYFRAMING
-  // Get interpolated values for watch translation & rotation
   const watchPosX = getInterpolatedValue(keyframesX, val);
   const watchRotY = getInterpolatedValue(keyframesRotY, val);
   const watchRotX = getInterpolatedValue(keyframesRotX, val);
 
-  // Apply positions to all active watch groups
+  // Apply positions to all active watch groups, blending in user's drag rotation
   const groups = [groupGears, groupPlates, groupFace, groupHands, groupCasing, groupStrap, groupGlass];
   groups.forEach(g => {
     g.position.x = watchPosX;
-    g.rotation.y = watchRotY;
-    g.rotation.x = watchRotX;
+    g.rotation.y = watchRotY + dragRotationY;
+    g.rotation.x = watchRotX + dragRotationX;
   });
 
   // 3. SMOOTH CAMERA KEYFRAMING
@@ -590,7 +659,11 @@ function updateAssembly(val) {
 
   camera.position.set(camX, camY, camZ);
   
-  // Clean, reusable vector look-at target pointing slightly offset to balance layout
+  // Update depth of field focus to match camera Z distance (keeps center sharp!)
+  if (bokehPass) {
+    bokehPass.uniforms['focus'].value = camZ;
+  }
+  
   lookAtVector.set(watchPosX, 0, 0);
   camera.lookAt(lookAtVector);
 }
@@ -608,7 +681,6 @@ function animate() {
     item.mesh.rotation.z += item.speed;
   });
 
-  // Balance wheel oscillating (4Hz back and forth)
   if (balanceWheel) {
     balanceWheel.rotation.z = Math.sin(elapsedTime * Math.PI * 4) * 0.75;
   }
@@ -617,14 +689,19 @@ function animate() {
   currentProgress += (targetProgress - currentProgress) * 0.09;
   updateAssembly(currentProgress);
 
-  // 3. Mouse parallax tilt (soft interaction on top of base animation)
+  // 3. Decay drag rotation back to 0 when user releases touch/mouse
+  if (!isDragging) {
+    dragRotationX += (0 - dragRotationX) * 0.08;
+    dragRotationY += (0 - dragRotationY) * 0.08;
+  }
+
+  // 4. Mouse parallax tilt (soft interaction when static on Hero or CTA)
   mouseX += (targetMouseX - mouseX) * 0.06;
   mouseY += (targetMouseY - mouseY) * 0.06;
 
   const mouseTiltX = mouseY * 0.05;
   const mouseTiltY = mouseX * 0.05;
 
-  // Add ambient tilt/slow rotation when static on Hero or CTA
   if (currentProgress < 0.02 || currentProgress > 0.98) {
     const ambientRot = elapsedTime * 0.015;
     const groups = [groupGears, groupPlates, groupFace, groupHands, groupCasing, groupStrap, groupGlass];
@@ -634,6 +711,6 @@ function animate() {
     });
   }
 
-  // 4. Post-processing Render
+  // 5. Post-processing Render
   composer.render();
 }

@@ -233,4 +233,68 @@ function initSmoothScrollAndAnimations() {
       alert('Booking client portal loading...');
     });
   }
+
+  // 4. Custom Luxury Cursor Logic
+  const cursor = document.getElementById('custom-cursor');
+  const cursorDot = document.getElementById('custom-cursor-dot');
+  
+  let mX = 0, mY = 0; // Mouse coordinates
+  let cX = 0, cY = 0; // Circular cursor ring coordinates
+  
+  window.addEventListener('mousemove', (e) => {
+    mX = e.clientX;
+    mY = e.clientY;
+    
+    // Position dot instantly
+    cursorDot.style.left = `${mX}px`;
+    cursorDot.style.top = `${mY}px`;
+  });
+  
+  // Smooth circular outline follow motion
+  function animateCursor() {
+    cX += (mX - cX) * 0.15;
+    cY += (mY - cY) * 0.15;
+    
+    cursor.style.left = `${cX}px`;
+    cursor.style.top = `${cY}px`;
+    
+    requestAnimationFrame(animateCursor);
+  }
+  animateCursor();
+
+  // Add Hover Class to Cursor on interactable elements
+  const hoverElements = document.querySelectorAll('a, button, .collection-card, .logo');
+  hoverElements.forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.classList.add('hover');
+      cursorDot.classList.add('hover');
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.classList.remove('hover');
+      cursorDot.classList.remove('hover');
+    });
+  });
+
+  // 5. 3D Card Hover Tilt Parallax Effect
+  const cards = document.querySelectorAll('.collection-card');
+  cards.forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left; // cursor x relative to card
+      const y = e.clientY - rect.top;  // cursor y relative to card
+      
+      const xc = rect.width / 2;
+      const yc = rect.height / 2;
+      
+      // Compute tilt angles (max tilt ~10 degrees)
+      const rotY = -(xc - x) / (xc / 10); 
+      const rotX = (yc - y) / (yc / 10);
+      
+      card.style.transform = `translateY(-10px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+    });
+    
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = 'translateY(0) rotateX(0) rotateY(0)';
+    });
+  });
 }
