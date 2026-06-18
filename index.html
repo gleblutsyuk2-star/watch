@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AETERNA — Swiss Luxury Timepieces</title>
+  <meta name="description" content="AETERNA is an independent Swiss watch manufacture creating exclusive hand-crafted mechanical timepieces in limited series. Beyond Time. Beyond Tradition.">
+  
+  <!-- Preconnect Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+
+  <!-- Loading Screen -->
+  <div id="loader" class="loader-container">
+    <div class="loader-content">
+      <div class="loader-logo">A E T E R N A</div>
+      <div class="loader-tagline">SWISS LUXURY MANUFACTURE</div>
+      <div class="loader-progress-bar">
+        <div class="loader-progress-fill" id="loader-progress"></div>
+      </div>
+      <div class="loader-status" id="loader-status">Assembling calibre... 0%</div>
+    </div>
+  </div>
+
+  <!-- Three.js Canvas Container -->
+  <div id="canvas-container">
+    <canvas id="watch-canvas"></canvas>
+    <div id="canvas-overlay"></div>
+  </div>
+
+  <!-- Main Smooth Scroll Container -->
+  <main id="scroll-container">
+    
+    <!-- HEADER / NAVIGATION -->
+    <header class="header">
+      <div class="logo">AETERNA</div>
+      <nav class="nav-links">
+        <a href="#philosophy" class="nav-link">Philosophy</a>
+        <a href="#craftsmanship" class="nav-link">Craftsmanship</a>
+        <a href="#collections" class="nav-link">Collections</a>
+        <a href="#materials" class="nav-link">Materials</a>
+      </nav>
+      <button class="cta-btn-header" id="header-cta-btn">Book Private Viewing</button>
+    </header>
+
+    <!-- SECTION 1: HERO -->
+    <section class="section section-hero" id="hero">
+      <div class="section-content hero-content">
+        <h1 class="hero-title">Crafted for Those<br>Who Value Time</h1>
+        <p class="hero-subtitle">BEYOND TIME. BEYOND TRADITION.</p>
+      </div>
+      <div class="scroll-prompt">
+        <span class="scroll-prompt-text">Scroll to Assemble Calibre</span>
+        <div class="scroll-prompt-arrow">
+          <div class="arrow-line"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: PHILOSOPHY -->
+    <section class="section section-philosophy" id="philosophy">
+      <div class="section-content grid-2col">
+        <div class="philosophy-text-block">
+          <h2 class="section-tag">PHILOSOPHY</h2>
+          <h3 class="philosophy-heading">A Legacy Built by Hand. For Generations.</h3>
+          <p class="philosophy-body">
+            AETERNA is an independent Swiss watch manufacture, creating exclusive mechanical timepieces in strictly limited series for collectors and connoisseurs of haute horlogerie. 
+          </p>
+          <p class="philosophy-body">
+            Each timepiece is hand-assembled by master watchmakers who undergo years of training in traditional methods. With production limited to only 300 calibres a year, every instrument is not just a tool for measuring time, but a masterpiece of sculpture and mechanics.
+          </p>
+          <blockquote class="philosophy-quote">
+            "True luxury is not about immediate attention. It is about objects built to outlast us, preserving accuracy and beauty across generations."
+          </blockquote>
+        </div>
+        <div class="philosophy-visual">
+          <div class="image-wrapper shadow-glow">
+            <img src="/images/watchmaking_tools.png" alt="Precision watchmaking tools on workbench" class="philosophical-image" loading="lazy">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: CRAFTSMANSHIP -->
+    <section class="section section-craftsmanship" id="craftsmanship">
+      <div class="section-content">
+        <h2 class="section-tag center">THE CALIBRE</h2>
+        <h3 class="craftsmanship-main-heading center">Micro-Mechanics in Motion</h3>
+        
+        <div class="craftsmanship-steps">
+          <div class="craft-step" id="craft-step-1">
+            <div class="step-num">01</div>
+            <div class="step-detail">
+              <h4 class="step-title">The Mechanical Heart</h4>
+              <p class="step-desc">
+                The balance wheel oscillates at 28,800 vibrations per hour (4Hz). Programmed to maintain an unyielding rate, it dictates the pulse of the watch, counteracting gravitational forces with microscopic precision.
+              </p>
+            </div>
+          </div>
+          
+          <div class="craft-step" id="craft-step-2">
+            <div class="step-num">02</div>
+            <div class="step-detail">
+              <h4 class="step-title">The Precision Gear Train</h4>
+              <p class="step-desc">
+                Energy travels from the mainspring barrel through a series of interlocking, hand-bevelled gears. Each tooth profile is cut to tolerances of less than 2 microns, ensuring frictionless transmission.
+              </p>
+            </div>
+          </div>
+          
+          <div class="craft-step" id="craft-step-3">
+            <div class="step-num">03</div>
+            <div class="step-detail">
+              <h4 class="step-title">Jeweled Pivots</h4>
+              <p class="step-desc">
+                Twenty-five synthetic ruby bearings serve as friction-free points of contact for the rapidly spinning gear pivots, securing oil pools and guaranteeing that the mechanism retains its precision for decades.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: COLLECTIONS -->
+    <section class="section section-collections" id="collections">
+      <div class="section-content">
+        <h2 class="section-tag center">COLLECTIONS</h2>
+        <h3 class="collections-main-heading center">Select Your Masterpiece</h3>
+        
+        <div class="collections-grid">
+          <!-- Card 1 -->
+          <div class="collection-card" data-collection="heritage">
+            <div class="card-bg-glow"></div>
+            <div class="card-content">
+              <span class="card-edition">01 / HERITAGE</span>
+              <h4 class="card-title">Heritage Calibre</h4>
+              <p class="card-description">Classic styling. Hand-polished 18K gold case, premium hand-stitched alligator leather strap, and traditional guilloché dial.</p>
+              <div class="card-specs">
+                <span>Gold 18K</span>
+                <span>Automatic</span>
+                <span>40mm</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Card 2 -->
+          <div class="collection-card" data-collection="horizon">
+            <div class="card-bg-glow"></div>
+            <div class="card-content">
+              <span class="card-edition">02 / HORIZON</span>
+              <h4 class="card-title">Horizon Minimal</h4>
+              <p class="card-description">Modern architectural minimalism. Grade 5 sandblasted titanium casing, double curved sapphire, and integrated bracelet.</p>
+              <div class="card-specs">
+                <span>Titanium</span>
+                <span>Manual-wind</span>
+                <span>41mm</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Card 3 -->
+          <div class="collection-card" data-collection="eclipse">
+            <div class="card-bg-glow"></div>
+            <div class="card-content">
+              <span class="card-edition">03 / ECLIPSE</span>
+              <h4 class="card-title">Eclipse Chrono</h4>
+              <p class="card-description">Bold and aggressive. Deep-black zirconium oxide ceramic case, fully skeletonized movement, and rubber-lined strap.</p>
+              <div class="card-specs">
+                <span>Ceramic</span>
+                <span>Chronograph</span>
+                <span>42mm</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Card 4 -->
+          <div class="collection-card" data-collection="astrum">
+            <div class="card-bg-glow"></div>
+            <div class="card-content">
+              <span class="card-edition">04 / ASTRUM</span>
+              <h4 class="card-title">Astrum Tourbillon</h4>
+              <p class="card-description">Our flagship complication. Floating flying tourbillon, 120-hour power reserve indicator, and limited platinum production.</p>
+              <div class="card-specs">
+                <span>Platinum</span>
+                <span>Tourbillon</span>
+                <span>43mm</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: MATERIALS -->
+    <section class="section section-materials" id="materials">
+      <div class="section-content grid-2col">
+        <div class="materials-visual">
+          <div class="image-wrapper shadow-glow">
+            <img src="/images/workshop_assembly.png" alt="Watchmaker assembling mechanical movement" class="philosophical-image" loading="lazy">
+          </div>
+        </div>
+        <div class="materials-text-block">
+          <h2 class="section-tag">MATERIALS</h2>
+          <h3 class="materials-heading">Engineered Without Compromise</h3>
+          
+          <ul class="materials-list">
+            <li class="materials-item">
+              <span class="material-name">Sapphire Crystal</span>
+              <span class="material-description">Vickers hardness of 2,000, virtually scratchproof. Coated with double anti-reflective layers for perfect clarity.</span>
+            </li>
+            <li class="materials-item">
+              <span class="material-name">Grade 5 Titanium</span>
+              <span class="material-description">Biocompatible, high strength-to-weight ratio, and highly resistant to corrosion. Finished with a satin-brushed luster.</span>
+            </li>
+            <li class="materials-item">
+              <span class="material-name">18K Swiss Gold</span>
+              <span class="material-description">A proprietary alloy formulation that resists discoloration over decades, casting a rich, warm light reflection.</span>
+            </li>
+            <li class="materials-item">
+              <span class="material-name">Zirconium Ceramic</span>
+              <span class="material-description">Sintered at 1500°C and diamond-polished. Highly scratch-resistant and silky smooth to the touch.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: PRECISION (NUMBERS) -->
+    <section class="section section-precision" id="precision">
+      <div class="section-content precision-content">
+        <h2 class="section-tag center">METRICS</h2>
+        <h3 class="precision-main-heading center">Tested Beyond Limits</h3>
+        
+        <div class="metrics-grid">
+          <div class="metric-item">
+            <div class="metric-value" data-value="120">120h</div>
+            <div class="metric-label">Power Reserve</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-value" data-value="2">±2s</div>
+            <div class="metric-label">Daily Accuracy</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-value" data-value="300">300</div>
+            <div class="metric-label">Pieces Per Year</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 7: EXPERIENCE (STEPS) -->
+    <section class="section section-experience" id="experience">
+      <div class="section-content">
+        <h2 class="section-tag center">ACQUISITION</h2>
+        <h3 class="experience-main-heading center">The Experience Journey</h3>
+        
+        <div class="experience-timeline">
+          <div class="timeline-item">
+            <div class="timeline-badge">1</div>
+            <div class="timeline-content">
+              <h4 class="timeline-title">Private Consultation</h4>
+              <p class="timeline-desc">A dedicated curator hosts a personal consultation at one of our private lounges to discuss collections and custom configurations.</p>
+            </div>
+          </div>
+          
+          <div class="timeline-item">
+            <div class="timeline-badge">2</div>
+            <div class="timeline-content">
+              <h4 class="timeline-title">Watch Customization</h4>
+              <p class="timeline-desc">Choose gold type, bezel polishing style, hand finishes, and customize the engraving on the movement bridge.</p>
+            </div>
+          </div>
+          
+          <div class="timeline-item">
+            <div class="timeline-badge">3</div>
+            <div class="timeline-content">
+              <h4 class="timeline-title">Hand Assembly</h4>
+              <p class="timeline-desc">A single dedicated master watchmaker oversees the entire build process, hand-decorating plates and oiling pivots.</p>
+            </div>
+          </div>
+          
+          <div class="timeline-item">
+            <div class="timeline-badge">4</div>
+            <div class="timeline-content">
+              <h4 class="timeline-title">Secure Delivery</h4>
+              <p class="timeline-desc">Each timepiece is hand-delivered globally via a bonded courier in a climate-controlled presentation box made of walnut.</p>
+            </div>
+          </div>
+          
+          <div class="timeline-item">
+            <div class="timeline-badge">5</div>
+            <div class="timeline-content">
+              <h4 class="timeline-title">Lifetime Service</h4>
+              <p class="timeline-desc">Included 10-year warranty followed by concierge maintenance, polishing, and restoration services for generations.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 8: TESTIMONIALS -->
+    <section class="section section-testimonials" id="testimonials">
+      <div class="section-content testimonials-content">
+        <h2 class="section-tag center">OWNERS</h2>
+        <div class="testimonial-slider">
+          <div class="testimonial-slide">
+            <p class="testimonial-quote">"AETERNA is not an instrument of time, but a container of patience. When you look at the escapement beat, you understand what time is truly made of."</p>
+            <cite class="testimonial-author">— Collector, Zurich</cite>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 9: FINAL CTA -->
+    <section class="section section-cta" id="cta">
+      <div class="section-content cta-content">
+        <h2 class="cta-title">Own More Than Time</h2>
+        <p class="cta-subtitle">Begin your private journey with AETERNA today.</p>
+        <button class="cta-btn-large" id="main-cta-btn">Schedule a Private Viewing</button>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-logo">A E T E R N A</div>
+      <div class="footer-copy">&copy; 2026 Aeterna Timepieces S.A. Geneva, Switzerland. All Rights Reserved.</div>
+    </footer>
+  </main>
+
+  <!-- GSAP and ThreeJS Setup -->
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
